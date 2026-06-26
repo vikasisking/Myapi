@@ -9,11 +9,10 @@ const ENDPOINTS = [
     method: "GET",
     path: "/api/sms",
     title: "Get SMS Messages",
-    description: "Saare enabled panels ka merged, deduplicated SMS data real-time me milega.",
+    description: "Real-time SMS data — saare sources ka merged, deduplicated data ek hi call me.",
     params: [
       { name: "key", type: "string", required: true, desc: "Aapka API key (admin se lo)" },
-      { name: "panel", type: "string", required: false, desc: "Specific panel filter: gaza, hadi, green, np, konekta, mbc, nexus, ps, zone" },
-      { name: "num", type: "string", required: false, desc: "Phone number se filter karo (partial match)" },
+      { name: "num", type: "string", required: false, desc: "Phone number se filter karo (partial match supported)" },
       { name: "limit", type: "integer", required: false, desc: "Max records return karo (default: 500)" },
     ],
     example_url: `${API_BASE}/api/sms?key=${API_KEY_DEMO}&limit=10`,
@@ -26,15 +25,13 @@ const ENDPOINTS = [
       "dt": "2025-06-26 14:29:55",
       "num": "919876543210",
       "cli": "AMAZON",
-      "message": "Your OTP is 482910",
-      "panel": "HadiPanel"
+      "message": "Your OTP is 482910"
     },
     {
       "dt": "2025-06-26 14:29:48",
       "num": "628123456789",
       "cli": "SHOPPE",
-      "message": "Kode OTP kamu: 773421",
-      "panel": "GazaPanel"
+      "message": "Kode OTP kamu: 773421"
     }
   ]
 }`,
@@ -51,7 +48,7 @@ data = resp.json()
 
 if data["status"] == "success":
     for sms in data["data"]:
-        print(f"[{sms['panel']}] {sms['num']} — {sms['message']}")`,
+        print(f"{sms['num']} — {sms['message']}")`,
     example_node: `const axios = require('axios');
 
 const res = await axios.get('${API_BASE}/api/sms', {
@@ -63,55 +60,16 @@ const res = await axios.get('${API_BASE}/api/sms', {
 
 const { data } = res.data;
 data.forEach(sms => {
-  console.log(\`[\${sms.panel}] \${sms.num} — \${sms.message}\`);
+  console.log(\`\${sms.num} — \${sms.message}\`);
 });`,
     example_curl: `curl "${API_BASE}/api/sms?key=${API_KEY_DEMO}&limit=10"`,
-  },
-  {
-    id: "filter_panel",
-    method: "GET",
-    path: "/api/sms?panel=gaza",
-    title: "Filter by Panel",
-    description: "Sirf ek specific panel ka data lo.",
-    params: [
-      { name: "key", type: "string", required: true, desc: "API key" },
-      { name: "panel", type: "string", required: true, desc: "Panel name: gaza | hadi | green | np | konekta | mbc | nexus | ps | zone" },
-    ],
-    example_url: `${API_BASE}/api/sms?key=${API_KEY_DEMO}&panel=hadi`,
-    example_response: `{
-  "status": "success",
-  "count": 1,
-  "ts": "2025-06-26 14:30:00",
-  "data": [
-    {
-      "dt": "2025-06-26 14:29:48",
-      "num": "919876543210",
-      "cli": "TATASKY",
-      "message": "OTP: 991234 valid for 10 min",
-      "panel": "HadiPanel"
-    }
-  ]
-}`,
-    example_python: `import requests
-
-# Sirf Hadi panel ka SMS
-resp = requests.get("${API_BASE}/api/sms", params={
-    "key": "${API_KEY_DEMO}",
-    "panel": "hadi"
-})
-print(resp.json())`,
-    example_node: `const res = await axios.get('${API_BASE}/api/sms', {
-  params: { key: '${API_KEY_DEMO}', panel: 'hadi' }
-});
-console.log(res.data);`,
-    example_curl: `curl "${API_BASE}/api/sms?key=${API_KEY_DEMO}&panel=hadi"`,
   },
   {
     id: "filter_number",
     method: "GET",
     path: "/api/sms?num=9198",
     title: "Filter by Phone Number",
-    description: "Specific number ka SMS dhundo (partial match supported).",
+    description: "Specific number ka SMS dhundo — partial match bhi kaam karta hai.",
     params: [
       { name: "key", type: "string", required: true, desc: "API key" },
       { name: "num", type: "string", required: true, desc: "Number ya partial number (e.g. 9198 se sab 9198xxxxxxx milenge)" },
@@ -126,14 +84,12 @@ console.log(res.data);`,
       "dt": "2025-06-26 14:29:55",
       "num": "919876543210",
       "cli": "AMAZON",
-      "message": "Your OTP is 482910. Do not share.",
-      "panel": "HadiPanel"
+      "message": "Your OTP is 482910. Do not share."
     }
   ]
 }`,
     example_python: `import requests
 
-# Ek number ka SMS check karo
 number = "919876543210"
 resp = requests.get("${API_BASE}/api/sms", params={
     "key": "${API_KEY_DEMO}",
@@ -156,69 +112,28 @@ if (res.data.count > 0) {
     id: "status",
     method: "GET",
     path: "/api/status",
-    title: "Panel Status",
-    description: "Saare panels ka live status — enabled/disabled, last fetch time, record count.",
+    title: "API Status",
+    description: "API server ka live status — uptime aur total records check karo.",
     params: [
       { name: "key", type: "string", required: true, desc: "API key" },
     ],
     example_url: `${API_BASE}/api/status?key=${API_KEY_DEMO}`,
     example_response: `{
   "status": "ok",
-  "total": 7,
-  "panels": [
-    { "name": "GazaPanel",   "command": "gaza",    "enabled": true,  "last_fetch": "14:29:55", "records": 187 },
-    { "name": "HadiPanel",   "command": "hadi",    "enabled": true,  "last_fetch": "14:29:57", "records": 204 },
-    { "name": "green",       "command": "green",   "enabled": false, "last_fetch": "14:28:00", "records": 0   },
-    { "name": "NPPanel",     "command": "np",      "enabled": true,  "last_fetch": "14:29:56", "records": 91  },
-    { "name": "Konekta",     "command": "konekta", "enabled": true,  "last_fetch": "14:29:55", "records": 43  },
-    { "name": "MBCPanel",    "command": "mbc",     "enabled": true,  "last_fetch": "14:29:58", "records": 120 },
-    { "name": "NexusPanel",  "command": "nexus",   "enabled": true,  "last_fetch": "14:29:59", "records": 67  }
-  ]
+  "uptime": "running",
+  "ts": "2025-06-26 14:30:00"
 }`,
     example_python: `import requests
 
 resp = requests.get("${API_BASE}/api/status", params={"key": "${API_KEY_DEMO}"})
-for p in resp.json()["panels"]:
-    status = "✅" if p["enabled"] else "❌"
-    print(f"{status} {p['name']}: {p['records']} records")`,
+print(resp.json())`,
     example_node: `const res = await axios.get('${API_BASE}/api/status', {
   params: { key: '${API_KEY_DEMO}' }
 });
-res.data.panels.forEach(p => {
-  console.log(\`\${p.enabled ? '✅' : '❌'} \${p.name}: \${p.records} records\`);
-});`,
+console.log(res.data);`,
     example_curl: `curl "${API_BASE}/api/status?key=${API_KEY_DEMO}"`,
   },
-  {
-    id: "panels",
-    method: "GET",
-    path: "/api/panels",
-    title: "List Panels",
-    description: "Available panels ki list lo (no auth required).",
-    params: [],
-    example_url: `${API_BASE}/api/panels`,
-    example_response: `{
-  "panels": [
-    { "name": "GazaPanel",  "command": "gaza"    },
-    { "name": "HadiPanel",  "command": "hadi"    },
-    { "name": "green",      "command": "green"   },
-    { "name": "NPPanel",    "command": "np"      },
-    { "name": "Konekta",    "command": "konekta" },
-    { "name": "MBCPanel",   "command": "mbc"     },
-    { "name": "NexusPanel", "command": "nexus"   }
-  ]
-}`,
-    example_python: `import requests
-resp = requests.get("${API_BASE}/api/panels")
-for p in resp.json()["panels"]:
-    print(p["name"], "→", p["command"])`,
-    example_node: `const res = await axios.get('${API_BASE}/api/panels');
-console.log(res.data.panels);`,
-    example_curl: `curl "${API_BASE}/api/panels"`,
-  },
 ];
-
-const PANELS_LIST = ["gaza","hadi","green","np","konekta","mbc","nexus","ps","zone"];
 
 const LANG_TABS = ["curl", "python", "node"];
 
@@ -243,7 +158,7 @@ function CopyButton({ text }) {
   );
 }
 
-function CodeBlock({ code, lang }) {
+function CodeBlock({ code }) {
   return (
     <div style={{ position:"relative", marginTop:8 }}>
       <pre style={{
@@ -307,14 +222,11 @@ function EndpointCard({ ep }) {
     node: ep.example_node,
   };
 
-  const methodColor = { GET:"#22c55e", POST:"#f59e0b", DELETE:"#ef4444" };
-
   return (
     <div style={{
       background:"#111827", border:"1px solid #ffffff10",
       borderRadius:12, marginBottom:16, overflow:"hidden"
     }}>
-      {/* Header */}
       <div onClick={() => setOpen(!open)} style={{
         display:"flex", alignItems:"center", gap:12,
         padding:"14px 20px", cursor:"pointer",
@@ -322,9 +234,8 @@ function EndpointCard({ ep }) {
         transition:"background 0.2s"
       }}>
         <span style={{
-          background: methodColor["GET"] + "20",
-          color: methodColor["GET"],
-          border: `1px solid ${methodColor["GET"]}44`,
+          background:"#22c55e20", color:"#22c55e",
+          border:"1px solid #22c55e44",
           borderRadius:5, padding:"2px 9px", fontSize:11,
           fontWeight:700, fontFamily:"monospace", flexShrink:0
         }}>GET</span>
@@ -333,12 +244,10 @@ function EndpointCard({ ep }) {
         <span style={{color:"#475569", fontSize:18}}>{open ? "▾" : "▸"}</span>
       </div>
 
-      {/* Body */}
       {open && (
         <div style={{padding:"0 20px 20px"}}>
           <p style={{color:"#94a3b8", margin:"12px 0 16px", fontSize:14}}>{ep.description}</p>
 
-          {/* Example URL */}
           <div style={{marginBottom:16}}>
             <label style={{color:"#64748b", fontSize:11, letterSpacing:"0.08em", fontWeight:600}}>EXAMPLE URL</label>
             <div style={{position:"relative", marginTop:6}}>
@@ -352,13 +261,11 @@ function EndpointCard({ ep }) {
             </div>
           </div>
 
-          {/* Params */}
           <div style={{marginBottom:16}}>
             <label style={{color:"#64748b", fontSize:11, letterSpacing:"0.08em", fontWeight:600}}>PARAMETERS</label>
             <ParamTable params={ep.params} />
           </div>
 
-          {/* Code tabs */}
           <div style={{marginBottom:16}}>
             <label style={{color:"#64748b", fontSize:11, letterSpacing:"0.08em", fontWeight:600}}>CODE EXAMPLE</label>
             <div style={{display:"flex", gap:4, marginTop:8, marginBottom:4}}>
@@ -372,13 +279,12 @@ function EndpointCard({ ep }) {
                 }}>{l}</button>
               ))}
             </div>
-            <CodeBlock code={codeMap[lang]} lang={lang} />
+            <CodeBlock code={codeMap[lang]} />
           </div>
 
-          {/* Response */}
           <div>
             <label style={{color:"#64748b", fontSize:11, letterSpacing:"0.08em", fontWeight:600}}>EXAMPLE RESPONSE</label>
-            <CodeBlock code={ep.example_response} lang="json" />
+            <CodeBlock code={ep.example_response} />
           </div>
         </div>
       )}
@@ -418,10 +324,7 @@ export default function App() {
           }}>API v1</span>
         </div>
         <div style={{display:"flex", alignItems:"center", gap:8}}>
-          <div style={{
-            width:7, height:7, borderRadius:"50%",
-            background:"#22c55e", boxShadow:"0 0 6px #22c55e"
-          }}/>
+          <div style={{width:7, height:7, borderRadius:"50%", background:"#22c55e", boxShadow:"0 0 6px #22c55e"}}/>
           <span style={{color:"#64748b", fontSize:12}}>Live</span>
         </div>
       </div>
@@ -436,7 +339,6 @@ export default function App() {
             {id:"overview", label:"Overview"},
             {id:"auth", label:"Authentication"},
             {id:"endpoints", label:"Endpoints"},
-            {id:"panels", label:"Panel List"},
             {id:"errors", label:"Errors"},
             {id:"quickstart", label:"Quick Start"},
           ].map(s => (
@@ -464,11 +366,10 @@ export default function App() {
               HxOTP SMS API
             </h1>
             <p style={{color:"#94a3b8", fontSize:15, lineHeight:1.7, margin:"0 0 20px"}}>
-              Single REST API endpoint se saare SMS panels ka real-time data lo.
-              Baar baar multiple panel APIs hit karne ki zaroorat nahi — ek call, sab kuch.
+              Single REST API endpoint se real-time SMS data lo.
+              Ek call me sab kuch — fast, reliable, deduplicated.
             </p>
 
-            {/* Config box */}
             <div style={{
               background:"#111827", border:"1px solid #ffffff10",
               borderRadius:12, padding:20, marginBottom:24
@@ -493,14 +394,13 @@ export default function App() {
                 </div>
               </div>
               <p style={{color:"#475569", fontSize:11, margin:"10px 0 0"}}>
-                Apna VPS IP aur API key yahan set karo — upar ke examples update ho jaayenge.
+                Apna API URL aur key yahan set karo — niche ke examples automatically update honge.
               </p>
             </div>
 
-            {/* Quick stats */}
             <div style={{display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12}}>
               {[
-                {label:"Base URL", value:`${baseUrl}`, mono:true},
+                {label:"Base URL", value:baseUrl, mono:true},
                 {label:"Format", value:"JSON"},
                 {label:"Auth", value:"API Key (query param)"},
               ].map(s => (
@@ -524,8 +424,10 @@ export default function App() {
           <section id="auth" style={{marginBottom:48}}>
             <h2 style={{fontSize:20, fontWeight:700, margin:"0 0 12px", letterSpacing:"-0.01em"}}>Authentication</h2>
             <p style={{color:"#94a3b8", fontSize:14, lineHeight:1.7}}>
-              Har request me <code style={{color:"#7dd3fc", background:"#7dd3fc11", padding:"1px 6px", borderRadius:4}}>key</code> query parameter required hai.
-              Invalid key pe <code style={{color:"#f87171"}}>401</code> error milega.
+              Har request me{" "}
+              <code style={{color:"#7dd3fc", background:"#7dd3fc11", padding:"1px 6px", borderRadius:4}}>key</code>
+              {" "}query parameter required hai. Invalid key pe{" "}
+              <code style={{color:"#f87171"}}>401</code> error milega.
             </p>
             <CodeBlock code={`# Correct
 GET ${baseUrl}/api/sms?key=${apiKey}
@@ -537,25 +439,8 @@ GET ${baseUrl}/api/sms`} />
           {/* ENDPOINTS */}
           <section id="endpoints" style={{marginBottom:48}}>
             <h2 style={{fontSize:20, fontWeight:700, margin:"0 0 4px", letterSpacing:"-0.01em"}}>Endpoints</h2>
-            <p style={{color:"#64748b", fontSize:13, margin:"0 0 16px"}}>Kisi bhi endpoint par click karo details ke liye</p>
+            <p style={{color:"#64748b", fontSize:13, margin:"0 0 16px"}}>Click karo details ke liye</p>
             {ENDPOINTS.map(ep => <EndpointCard key={ep.id} ep={ep} />)}
-          </section>
-
-          {/* PANEL LIST */}
-          <section id="panels" style={{marginBottom:48}}>
-            <h2 style={{fontSize:20, fontWeight:700, margin:"0 0 12px", letterSpacing:"-0.01em"}}>Available Panels</h2>
-            <p style={{color:"#94a3b8", fontSize:14, margin:"0 0 14px"}}>
-              <code style={{color:"#7dd3fc", background:"#7dd3fc11", padding:"1px 6px", borderRadius:4}}>panel</code> param me ye values use karo:
-            </p>
-            <div style={{display:"flex", flexWrap:"wrap", gap:8}}>
-              {PANELS_LIST.map(p => (
-                <div key={p} style={{
-                  background:"#111827", border:"1px solid #ffffff10",
-                  borderRadius:7, padding:"7px 16px",
-                  fontFamily:"monospace", fontSize:13, color:"#7dd3fc"
-                }}>{p}</div>
-              ))}
-            </div>
           </section>
 
           {/* ERRORS */}
@@ -592,7 +477,7 @@ GET ${baseUrl}/api/sms`} />
           <section id="quickstart" style={{marginBottom:48}}>
             <h2 style={{fontSize:20, fontWeight:700, margin:"0 0 12px", letterSpacing:"-0.01em"}}>Quick Start — Telegram Bot</h2>
             <p style={{color:"#94a3b8", fontSize:14, margin:"0 0 14px"}}>
-              Ye minimal Python bot hai jo is API se real-time SMS fetch karta hai aur Telegram pe bhejta hai:
+              Minimal Python bot jo is API se real-time SMS fetch karke Telegram pe bhejta hai:
             </p>
             <CodeBlock code={`import requests, telebot, time
 
@@ -617,15 +502,14 @@ def poll():
                     f"📩 *New SMS*\\n"
                     f"📱 \`{sms['num']}\`\\n"
                     f"📨 {sms['cli']}\\n"
-                    f"💬 {sms['message']}\\n"
-                    f"🔌 {sms['panel']}"
+                    f"💬 {sms['message']}"
                 )
                 bot.send_message(CHAT_ID, text, parse_mode="Markdown")
         except Exception as e:
             print(f"Error: {e}")
         time.sleep(5)
 
-poll()`} lang="python" />
+poll()`} />
           </section>
 
           <div style={{
