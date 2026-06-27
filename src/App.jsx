@@ -1,8 +1,7 @@
 import { useState } from "react";
 
-const API_BASE = "http://YOUR_VPS_IP:5055";
-const API_KEY_DEMO = "hxotp_secret_2025";
-
+const API_BASE = "http://api-production-a4c9.up.railway.app:5055";
+const API_KEY_DEMO = "h2ihub";
 const ENDPOINTS = [
   {
     id: "get_sms",
