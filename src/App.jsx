@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const API_BASE = "http://api-production-a4c9.up.railway.app:5055";
+const API_BASE = "http://api-production-a4c9.up.railway.app";
 const API_KEY_DEMO = "h2ihub";
 const ENDPOINTS = [
   {
